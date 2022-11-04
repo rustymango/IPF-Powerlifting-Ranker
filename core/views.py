@@ -238,13 +238,13 @@ print(deadlift_rank.to_string(index=False) + "%")
 
 # OUSTANDING TASKS:
 # --> Backend
-# - Database (mongoDB)
-#   - Fill in data for junior and senior men's/women's lifts
 # --> Frontend
 # - set up front end and inputs
 # - logic for inputs and how they're categorized
 # --> Features/Upgrades
+# - Set up git hub
 # - Account stuff
+# - Unit tests using csv (update db again too)
 
 #searching website that does not use API
 # def get_html_content(equipment, weight_class, gender, age, category):
