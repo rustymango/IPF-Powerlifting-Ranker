@@ -57,7 +57,7 @@ elif age > 23 and age <= 34:
 category = "by-total"
 
 user_squat = 335
-user_bench = 275
+user_bench = 285
 user_deadlift = 435
 user_total = user_squat + user_bench + user_deadlift
 
