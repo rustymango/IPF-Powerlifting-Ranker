@@ -1,6 +1,8 @@
+from django.contrib import admin
 from django.urls import path
-from . import views
+from .views import display_rank
 
 urlpatterns = [
-    path('', views.home, name='home')
+    path('', display_rank),
+    path("admin/", admin.site.urls)
 ]

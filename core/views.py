@@ -30,7 +30,7 @@ from pymongo import MongoClient
 # Hard coded user inputs
 equipment = "raw"
 weight = 160 
-gender = "woman"
+gender = "man"
 if gender == "man":
     gender = "men"
     #need way to automatically categorize
@@ -132,7 +132,7 @@ def grab_lift_data():
 
         i = i + 1
 
-grab_lift_data()
+# grab_lift_data()
 
 # Insert data into MongoDB
 # Only needs to be run once to store in DB, do not run otherwise
@@ -174,7 +174,10 @@ def store_data():
             db.WomenSenior.insert_one(deadlifts_dict)
     return
 
-store_data()
+# store_data()
+
+# html_content = driver.page_source
+driver.close()
 
 # Query db
 if gender == "men":
@@ -207,7 +210,7 @@ def query_lift_db():
         deadlifts = lift["deadlifts"]
         # print(deadlifts)
 
-# query_lift_db()
+query_lift_db()
 
 # Calculate rank of user
 
@@ -223,9 +226,6 @@ print(squat_rank.to_string(index=False) + "%")
 print(bench_rank.to_string(index=False) + "%")
 print(deadlift_rank.to_string(index=False) + "%")
 
-# html_content = driver.page_source
-# driver.close()
-
 # total_lifts = [sum(lifts) for lifts in zip(squats, benches, deadlifts)]
 # total_lifts = list(np.around(np.array(total_lifts), 1))
 
@@ -236,13 +236,17 @@ print(deadlift_rank.to_string(index=False) + "%")
 # print(sorted(deadlifts))
 # print(sorted(total_lifts))
 
+# frontend communication
+
+def display_rank(request):
+    return render(request, "index.html")
+
 # OUSTANDING TASKS:
 # --> Backend
 # --> Frontend
 # - set up front end and inputs
 # - logic for inputs and how they're categorized
 # --> Features/Upgrades
-# - Set up git hub
 # - Account stuff
 # - Unit tests using csv (update db again too)
 
