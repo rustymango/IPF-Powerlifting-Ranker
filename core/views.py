@@ -1,13 +1,14 @@
 from __future__ import print_function
-from cgitb import html
 from django.shortcuts import render
+from django.http import HttpResponse
+from cgitb import html
 from numpy import double
 from collections import defaultdict
+from bson import ObjectId
 import pip._vendor.requests
 import requests
 import re
 import numpy as np
-from bson import ObjectId
 
 #pandas
 import pandas as pd
@@ -26,6 +27,10 @@ import time
 from pymongo import MongoClient
 
 # Front-end inputs
+
+# Return user inputs
+def main(request):
+    return
 
 # Hard coded user inputs
 equipment = "raw"
