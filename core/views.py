@@ -1,6 +1,13 @@
 from __future__ import print_function
+#django rest framework connection to frontend
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse,StreamingHttpResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import viewsets
+from .models import Powerlifting
+from .serializer import PowerliftingSerializer
+
 from cgitb import html
 from numpy import double
 from collections import defaultdict
@@ -26,6 +33,21 @@ import time
 #NoSQL db (mongoDB)
 from pymongo import MongoClient
 
+class PowerliftingView(viewsets.ModelViewSet):
+    serializer_class = PowerliftingSerializer
+    queryset = Powerlifting.objects.all()
+
+# class PowerliftingView(APIView):
+#     def get(self, request):
+#         output = [{"weight": output.weight, "gender": output.gender, "age": output.age} for output in Powerlifting.objects.all()]
+#         return Response(output)
+
+#     def post(self, request):
+#         serializer = PowerliftingSerializer(data = request.data)
+#         if serializer.is_valid(raise_exception=True):
+#             serializer.save()
+#             return Response(serializer.data)
+
 # Front-end inputs
 
 # Return user inputs
@@ -35,9 +57,9 @@ def main(request):
 # Hard coded user inputs
 equipment = "raw"
 weight = 160 
-gender = "man"
-if gender == "man":
-    gender = "men"
+gender = "male"
+if gender == "male":
+    gender = "male"
     #need way to automatically categorize
     if weight > 145 and weight <= 163:
         weight_class = "ipf74"
@@ -46,7 +68,7 @@ if gender == "man":
         pass
 else:
     #automatic categorization needed here too
-    gender = "women"
+    gender = "female"
     if weight > 138 and weight <= 152:
         weight_class = "ipf69"
     elif weight > 152 and weight <= 168:
@@ -159,7 +181,7 @@ def store_data():
     deadlifts_dict["deadlifts"] = deadlifts
     print(deadlifts_dict)
 
-    if gender == "men":
+    if gender == "male":
         if age == "20-23":
             db.MenJunior.insert_one(squats_dict)
             db.MenJunior.insert_one(benches_dict)
@@ -185,7 +207,7 @@ def store_data():
 driver.close()
 
 # Query db
-if gender == "men":
+if gender == "male":
     if age == "20-23":
         database_id = "MenJunior"
     else:
@@ -231,6 +253,24 @@ print(squat_rank.to_string(index=False) + "%")
 print(bench_rank.to_string(index=False) + "%")
 print(deadlift_rank.to_string(index=False) + "%")
 
+# def postRanks(request):
+#     restdata = requests.get("http://localhost:8000/api/tasks/?format=json")
+
+#     id = []
+#     weight = []
+#     age = []
+#     year = []
+
+#     for i in range(len(restdata.json())):
+#         id.append(restdata.json()[i]["id"])
+#         weight.append(restdata.json()[i]["weight"])
+#         age.append(restdata.json()[i]["age"])
+#         year.append(restdata.json()[i]["year"])
+
+#     fetchdata = zip(id, weight, age, year)
+
+#     return render(request, "dashboard.html", {"fetchdata:fetchdata"})
+
 # total_lifts = [sum(lifts) for lifts in zip(squats, benches, deadlifts)]
 # total_lifts = list(np.around(np.array(total_lifts), 1))
 
@@ -243,8 +283,8 @@ print(deadlift_rank.to_string(index=False) + "%")
 
 # frontend communication
 
-def display_rank(request):
-    return render(request, "index.html")
+# def display_rank(request):
+#     return render(request, "index.html")
 
 # OUSTANDING TASKS:
 # --> Backend

@@ -15,9 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from core import views
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r"tasks", views.PowerliftingView, "task")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include(router.urls))
+    # path('', PowerliftingView.as_view(), name="anything")
     #sends any url to core.urls.py to be continued, can specify path in quotes too
-    path('', include('core.urls'))
+    # path('', include('core.urls'))
 ]
