@@ -154,9 +154,9 @@ def PowerliftingView(request, format=None):
         user_deadlift = request.data.get('user_deadlift', 435)
 
         squat_rank, bench_rank, deadlift_rank = calculate_rank(int(weight), gender, int(age), int(user_squat), int(user_bench), int(user_deadlift))
-        squat_rank = float(squat_rank)
-        bench_rank = float(bench_rank)
-        deadlift_rank = float(deadlift_rank)
+        squat_rank = str(squat_rank) + "%"
+        bench_rank = str(bench_rank) + "%"
+        deadlift_rank = str(deadlift_rank) + "%"
 
         serializer = PowerliftingSerializer(data = {"weight": weight, "gender": gender, "age": age, "squat": user_squat, "bench": user_bench, "deadlift": user_deadlift, "squat_rank": squat_rank, "bench_rank": bench_rank, "deadlift_rank": deadlift_rank})
 

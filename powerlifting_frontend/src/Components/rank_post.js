@@ -47,21 +47,37 @@ function PostRank () {
 
     if (ranks?.length > 0) {
         return(
-            ranks.map((rank, index) => {
-                console.log(rank);
-                return(
-                    <div>
-                        <p>{rank.bench_rank}</p>
-                        <p>{rank.deadlift_rank}</p>
-                        <p>{rank.squat_rank}</p>
-                    </div>
-                )
-            })
+            <div>
+                <h1>Your Ranks</h1>
+                <table style = {table}>
+                    <thead>
+                        <tr>
+                            {/* <th style = {align}>Name</th> */}
+                            <th>Squat Rank</th>
+                            <th>Bench Rank</th>
+                            <th>Deadlift Rank</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {
+                        ranks.map(rank =>
+                            <tr key = {rank.id}>
+                                <td style={td}>You're in the top {rank.squat_rank}</td>
+                                <td style={td}>You're in the top {rank.bench_rank}</td>
+                                <td style={td}>You're in the top {rank.deadlift_rank}</td>  
+                            </tr>
+                        )
+                    }
+                    </tbody>
+                </table>
+            </div>
         )
     }
     else {
-        return (<h3>No ranks posted yet</h3>)
-    }
+        return(
+            <h3>No ranks posted yet</h3>
+        )
+    }                
 
 };
 
