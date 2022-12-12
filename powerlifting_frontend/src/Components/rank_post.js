@@ -1,101 +1,68 @@
-import React, { Component } from 'react'
-import axios from 'axios'
+import axios from 'axios';
+import React, { Component, useState, useEffect }  from 'react';
+import { useParams } from 'react-router-dom';
 
-class PostRank extends Component {
-    constructor(props) {
-        super(props)
+function PostRank () {
 
-        this.state = {
-            rank: [],
-            errorMsg: ""
-        }
-    }
+    const [ranks, setRank] = useState({});
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    // componenetDidMount(){
-    //     axios.get("http://localhost:8000/api/tasks")
-    //         .then(response => {
-    //             console.log(response)
-    //             this.setState({
-    //                 rank: response.data
-    //             })
-    //         })
-    //         .catch(error => {
-    //             console.log(error)
-    //             this.setState({
-    //                 errorMsg: "Error retrieving data"
-    //             })
-    //         })
-    // }
+    function fetchRank () {
 
-    componenetDidMount(){
-        const axios = require("axios");
-        
-        axios({
-            method: "POST",
-            url: "http://localhost:8000/api/tasks",
-            
+    setLoading(true);
+    axios
+    
+        .get("http://localhost:8000/stats/")
+        .then(response => response.data)
+        .then((data) => {
+            setRank(data)
+            console.log(ranks)
         })
-            .then(response => {
-                console.log(response)
-                this.setState({
-                    rank: response.data
-                })
-            })
-            .catch(error => {
-                console.log(error)
-                this.setState({
-                    errorMsg: "Error retrieving data"
-                })
-            })
+        .catch((error) => {
+            setError(error.message);
+        })
+        .finally(() => {
+            setLoading(false);
+        });
     }
 
-    render() {
-        const table = {
-            margin: '0 auto',
-            padding: '0px 0px 5px 0px',
-            width: '80%'
-        }
+    useEffect(() => {
+        fetchRank();
+    }, [])
 
-        const td ={
-            padding: '0px 0px 20px 0px'
-        }
+    const table = {
+        margin: '0 auto',
+        padding: '0px 0px 5px 0px',
+        width: '80%'
+    }
 
-        const align ={
-            textAlign: 'justify'
-        }
+    const td ={
+        padding: '0px 0px 20px 0px'
+    }
 
-        const {rank, errorMsg} = this.state
-        return (
-            <div>
-                Your Rank
-                <br></br><br></br>
-                <table style={table}>
-                    <thead>
-                        <tr>
-                            <th style={align}>Name</th>
-                            <th>Squat Rank</th>
-                            <th>Bench Rank</th>
-                            <th>Deadlift Rank</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {
-                        rank.length ?
-                        rank.map( rank =>
-                            <tr key={rank.id}>
-                                <td style={td}>{rank.weight} </td>
-                                <td style={td}>{rank.age} </td>
-                                <td style={td}>{rank.gender} </td>
-                            </tr>
-                        ):
-                        null
-                    }
-                    { errorMsg ? <div>{errorMsg}</div> : null}
-                    </tbody>
-                </table>
-            </div>
+    const align ={
+        textAlign: 'justify'
+    }
+
+    if (ranks?.length > 0) {
+        return(
+            ranks.map((rank, index) => {
+                console.log(rank);
+                return(
+                    <div>
+                        <p>{rank.bench_rank}</p>
+                        <p>{rank.deadlift_rank}</p>
+                        <p>{rank.squat_rank}</p>
+                    </div>
+                )
+            })
         )
     }
-}
+    else {
+        return (<h3>No ranks posted yet</h3>)
+    }
+
+};
 
 export default PostRank

@@ -10,7 +10,12 @@ class PostStats extends Component {
             weight: "",
             gender: "",
             age: "",
-
+            squat: "",
+            bench: "",
+            deadlift: "",
+            squat_rank: "",
+            bench_rank: "",
+            deadlift_rank: ""
         }
         // this.handleSubmit=this.handleSubmit.bind(this)
     }
@@ -30,13 +35,44 @@ class PostStats extends Component {
             age: event.target.value
         })
     }
+   squathandler = (event) => {
+        this.setState({
+            squat: event.target.value
+        })
+    }
+    benchhandler = (event) => {
+        this.setState({
+            bench: event.target.value
+        })
+    }
+    deadlifthandler = (event) => {
+        this.setState({
+            deadlift: event.target.value
+        })
+    }
+    squat_rankhandler = (event) => {
+        this.setState({
+            squat: event.target.value
+        })
+    }
+    bench_rankhandler = (event) => {
+        this.setState({
+            bench: event.target.value
+        })
+    }
+    deadlift_rankhandler = (event) => {
+        this.setState({
+            deadlift: event.target.value
+        })
+    }
+
 
     handleSubmit = (event) => {
         // pop up dialogue box with text
         // alert(`${this.state.weight} test text`)
         event.preventDefault()
         axios
-            .post("http://localhost:8000/api/tasks/", this.state)
+            .post("http://localhost:8000/stats/", this.state)
              .then(response => {
                 console.log(response)
              })
@@ -50,6 +86,7 @@ class PostStats extends Component {
             age: "",
         })
 
+
     }
 
     render() {
@@ -58,7 +95,7 @@ class PostStats extends Component {
         return (
             <div>
 
-                <form onSubmit={this.handleSubmit}>
+                <form onSubmit={this.handleSubmit }>
                     <h1>Lifting Class Registration</h1>
                     <label>weight :</label> <input type="text" value={this.state.weight} onChange={this.weighthandler} placeholder="Weight..." /><br />
                     <label>gender :</label><select onChange={this.genderhandler} defaultValue="Select Gender">
@@ -67,6 +104,9 @@ class PostStats extends Component {
                         <option value="female">Female</option>
                     </select><br />
                     <label>age :</label> <input type="text" value={this.state.age} onChange={this.agehandler} placeholder="Age..." /><br />
+                    <label>Squat :</label> <input type="text" value={this.state.squat} onChange={this.squathandler} placeholder="Squat..." /><br />
+                    <label>Bench :</label> <input type="text" value={this.state.bench} onChange={this.benchhandler} placeholder="Bench..." /><br />
+                    <label>Deadlift :</label> <input type="text" value={this.state.deadlift} onChange={this.deadlifthandler} placeholder="Deadlift..." /><br />
                     <button type="submit">Submit</button>
                 </form>
             </div>
