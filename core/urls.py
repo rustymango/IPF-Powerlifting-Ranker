@@ -1,10 +1,12 @@
-# from django.contrib import admin
-# from django.urls import path
-# from .views import display_rank
+from django.contrib import admin
+from django.urls import path, include
+from rest_framework import routers
+from rest_framework.urlpatterns import format_suffix_patterns
+from .views import PowerliftingView, rankDetail
 
-# urlpatterns = [
-#     #receives url from powerlifting_app.urls and adds "home" to url
-#     path('home', display_rank),
-#     #ensures received url still works without "home" in url
-#     path('', display_rank)
-# ]
+urlpatterns = [
+    path("stats/", PowerliftingView),
+    path("stats/<int:pk>/", rankDetail),
+]
+
+# urlpatterns = format_suffix_patterns(urlpatterns)
