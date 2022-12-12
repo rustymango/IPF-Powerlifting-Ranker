@@ -1,10 +1,22 @@
 from __future__ import print_function
-#django rest framework connection to frontend
-from django.shortcuts import render
-from django.http import HttpResponse,JsonResponse,StreamingHttpResponse
+# django rest framework connection to frontend
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "powerlifting_app.settings")
+
+import django
+django.setup()
+
+from django.core.management import call_command
+from django.shortcuts import render, redirect
+from django.http import HttpRequest, HttpResponse,JsonResponse,StreamingHttpResponse
+from django.contrib.auth.models import User, Permission
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import api_view
+from .permissions import HasGroupPermission
+
 from .models import Powerlifting
 from .serializer import PowerliftingSerializer
 
@@ -33,194 +45,21 @@ import time
 #NoSQL db (mongoDB)
 from pymongo import MongoClient
 
-class PowerliftingView(viewsets.ModelViewSet):
-    serializer_class = PowerliftingSerializer
-    queryset = Powerlifting.objects.all()
-
-# class PowerliftingView(APIView):
-#     def get(self, request):
-#         output = [{"weight": output.weight, "gender": output.gender, "age": output.age} for output in Powerlifting.objects.all()]
-#         return Response(output)
-
-#     def post(self, request):
-#         serializer = PowerliftingSerializer(data = request.data)
-#         if serializer.is_valid(raise_exception=True):
-#             serializer.save()
-#             return Response(serializer.data)
-
 # Front-end inputs
 
-# Return user inputs
-def main(request):
-    return
+# class RankView(viewsets.ModelViewSet):
+#     serializer_class = RankSerializer
 
-# Hard coded user inputs
-equipment = "raw"
-weight = 160 
-gender = "male"
-if gender == "male":
-    gender = "male"
-    #need way to automatically categorize
-    if weight > 145 and weight <= 163:
-        weight_class = "ipf74"
-    elif weight > 163 and weight <= 183:
-        weight_class = "ipf83"
-        pass
-else:
-    #automatic categorization needed here too
-    gender = "female"
-    if weight > 138 and weight <= 152:
-        weight_class = "ipf69"
-    elif weight > 152 and weight <= 168:
-        weight_class = "ipf76"
-        pass
-age = 21
-#automatic categorization pls
-if age > 20 and age <= 23:
-    age = "20-23"
-elif age > 23 and age <= 34:
-    age = "24-34"
-    pass
-category = "by-total"
+# # Query db
 
-user_squat = 335
-user_bench = 285
-user_deadlift = 435
-user_total = user_squat + user_bench + user_deadlift
-
-# Selenium required as website uses API
-
-# ser = Service("D:/Usuario/Desktop/chrome_driver/chromedriver.exe")
-options = webdriver.ChromeOptions()
-options.add_experimental_option('excludeSwitches', ['enable-logging'])
-driver = webdriver.Chrome(options=options)
-driver.maximize_window()
-driver.get(f'https://www.openpowerlifting.org/rankings/\
-{equipment}/{weight_class}/{gender}/{age}/{category}')
-driver.implicitly_wait(15)
-
-squats = [user_squat]
-benches = [user_bench]
-deadlifts = [user_deadlift]
-
-def grab_lift_data():
-
-    # Retrieve lift data
-    # does not need to be run once all data stored in database
-
-    i = 0
-
-    squat_data = driver.find_elements(By.CLASS_NAME, "squat")
-    bench_data = driver.find_elements(By.CLASS_NAME, "bench")
-    deadlift_data = driver.find_elements(By.CLASS_NAME, "deadlift")
-
-    for squat in squat_data:
-        squats.append(float(squat.text))
-    for bench in bench_data:
-        benches.append(float(bench.text))
-    for deadlift in deadlift_data:
-        deadlifts.append(float(deadlift.text))
-    driver.execute_script("arguments[0].scrollIntoView(true);", squat_data[-1])
-    time.sleep(2)
-
-    while i <= 90:
-        squat_data = driver.find_elements(By.CLASS_NAME, "squat")
-        bench_data = driver.find_elements(By.CLASS_NAME, "bench")
-        deadlift_data = driver.find_elements(By.CLASS_NAME, "deadlift")
-        temp_squats = []
-        temp_benches = []
-        temp_deadlifts = []
-
-        for squat in squat_data:
-            if len(squat.text.strip()) > 0: 
-                temp_squats.append(float(squat.text))
-            else:
-                temp_squats = temp_squats
-        for bench in bench_data:
-            if len(bench.text.strip()) > 0:
-                temp_benches.append(float(bench.text))
-            else:
-                temp_benches = temp_benches
-        for deadlift in deadlift_data:
-            if len(deadlift.text.strip()) > 0:
-                temp_deadlifts.append(float(deadlift.text))
-            else:
-                temp_deadlifts = temp_deadlifts
-
-        driver.execute_script("arguments[0].scrollIntoView(true);", squat_data[-1])
-        time.sleep(2)
-
-        temp_squats[0:7] = []
-        squats.extend(temp_squats)
-        temp_benches[0:7] = []
-        benches.extend(temp_benches)
-        temp_deadlifts[0:7] = []
-        deadlifts.extend(temp_deadlifts)
-
-        i = i + 1
-
-# grab_lift_data()
-
-# Insert data into MongoDB
-# Only needs to be run once to store in DB, do not run otherwise
-
-client = MongoClient()
-client = MongoClient("localhost", 27017)
-
-db = client.PowerliftingDB
-
-# Store parsed data in db
-def store_data():
-    squats_dict = {"weight_class": weight_class, "lift": "squat"}
-    squats_dict["squats"] = squats
-    print(squats_dict)
-    benches_dict = {"weight_class": weight_class, "lift": "bench"}
-    benches_dict["benches"] = benches
-    print(benches_dict)
-    deadlifts_dict = {"weight_class": weight_class, "lift": "deadlift"}
-    deadlifts_dict["deadlifts"] = deadlifts
-    print(deadlifts_dict)
-
-    if gender == "male":
-        if age == "20-23":
-            db.MenJunior.insert_one(squats_dict)
-            db.MenJunior.insert_one(benches_dict)
-            db.MenJunior.insert_one(deadlifts_dict)
-        if age == "24-34":
-            db.MenSenior.insert_one(squats_dict)
-            db.MenSenior.insert_one(benches_dict)
-            db.MenSenior.insert_one(deadlifts_dict)
-    else:
-        if age == "20-23":
-            db.WomenJunior.insert_one(squats_dict)
-            db.WomenJunior.insert_one(benches_dict)
-            db.WomenJunior.insert_one(deadlifts_dict)
-        if age == "24-34":
-            db.WomenSenior.insert_one(squats_dict)
-            db.WomenSenior.insert_one(benches_dict)
-            db.WomenSenior.insert_one(deadlifts_dict)
-    return
-
-# store_data()
-
-# html_content = driver.page_source
-driver.close()
-
-# Query db
-if gender == "male":
-    if age == "20-23":
-        database_id = "MenJunior"
-    else:
-        database_id = "MenSenior"
-else:
-    if age == "20-23":
-        database_id = "WomenJunior"
-    else:
-        database_id = "WomenSenior"
-
-def query_lift_db():
+def query_lift_db(weight_class, database_id):
     
-    global squats, benches, deadlifts
+    client = MongoClient()
+    client = MongoClient("localhost", 27017)
+
+    db = client.PowerliftingDB    
+    
+    # global squats, benches, deadlifts
 
     lift_data = db.get_collection(database_id)
     squat_cursor = lift_data.find({"weight_class": weight_class, "lift": "squat"})
@@ -236,193 +75,118 @@ def query_lift_db():
     for lift in deadlift_cursor:
         deadlifts = lift["deadlifts"]
         # print(deadlifts)
-
-query_lift_db()
+    
+    return squats, benches, deadlifts
 
 # Calculate rank of user
 
-squat_df = pd.DataFrame(squats)
-bench_df = pd.DataFrame(benches)
-deadlift_df = pd.DataFrame(deadlifts)
+def calculate_rank(weight, gender, age, user_squat, user_bench, user_deadlift):
+    if gender == "male":
+        #need way to automatically categorize
+        if int(weight) > 145 and int(weight) <= 163:
+            weight_class = "ipf74"
+        elif int(weight) > 163 and int(weight) <= 183:
+            weight_class = "ipf83"
+        else:
+            weight_class = "ipf83" 
+    else:
+        if int(weight) > 138 and weight <= 152:
+            weight_class = "ipf69"
+        elif int(weight) > 152 and weight <= 168:
+            weight_class = "ipf76"
+        else:
+            weight_class = "ipf76"
 
-squat_rank = squat_df.lt(user_squat).sum()/len(squat_df)*100
-bench_rank = bench_df.lt(user_bench).sum()/len(bench_df)*100
-deadlift_rank = deadlift_df.lt(user_deadlift).sum()/len(deadlift_df)*100
+    if gender == "male":
+        if age > 20 and age <= 23:
+        # if age == "20-23":
+            database_id = "MenJunior"
+        else:
+            database_id = "MenSenior"
+    else:
+        if age > 20 and age <= 23:
+            database_id = "WomenJunior"
+        else:
+            database_id = "WomenSenior"
+    
+    # print(weight_class, database_id)
 
-print(squat_rank.to_string(index=False) + "%")
-print(bench_rank.to_string(index=False) + "%")
-print(deadlift_rank.to_string(index=False) + "%")
+    squats, benches, deadlifts = query_lift_db(weight_class, database_id)
 
-# def postRanks(request):
-#     restdata = requests.get("http://localhost:8000/api/tasks/?format=json")
+    squat_df = pd.DataFrame(squats)
+    bench_df = pd.DataFrame(benches)
+    deadlift_df = pd.DataFrame(deadlifts)
 
-#     id = []
-#     weight = []
-#     age = []
-#     year = []
+    squat_rank = squat_df.lt(user_squat).sum()/len(squat_df)*100
+    bench_rank = bench_df.lt(user_bench).sum()/len(bench_df)*100
+    deadlift_rank = deadlift_df.lt(user_deadlift).sum()/len(deadlift_df)*100
 
-#     for i in range(len(restdata.json())):
-#         id.append(restdata.json()[i]["id"])
-#         weight.append(restdata.json()[i]["weight"])
-#         age.append(restdata.json()[i]["age"])
-#         year.append(restdata.json()[i]["year"])
+    print(squat_rank.to_string(index=False) + "%")
+    print(bench_rank.to_string(index=False) + "%")
+    print(deadlift_rank.to_string(index=False) + "%")
 
-#     fetchdata = zip(id, weight, age, year)
+    squat_rank = squat_rank.to_string(index=False)
+    bench_rank = bench_rank.to_string(index=False)
+    deadlift_rank = deadlift_rank.to_string(index=False)
 
-#     return render(request, "dashboard.html", {"fetchdata:fetchdata"})
+    return squat_rank, bench_rank, deadlift_rank
 
-# total_lifts = [sum(lifts) for lifts in zip(squats, benches, deadlifts)]
-# total_lifts = list(np.around(np.array(total_lifts), 1))
+print(calculate_rank(160, "male", 22, 335, 285, 435))
 
-# #calculating rank of lifter
 
-# print(sorted(squats))
-# print(sorted(benches))
-# print(sorted(deadlifts))
-# print(sorted(total_lifts))
+@api_view(['GET', 'POST'])
+def PowerliftingView(request, format=None):
 
-# frontend communication
+    if request.method == 'GET':
+        rank = Powerlifting.objects.all()
+        serializer = PowerliftingSerializer(rank, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        # serializer = PowerliftingSerializer(data = request.POST) 
+        # print(request.POST)
 
-# def display_rank(request):
-#     return render(request, "index.html")
+        weight = request.data.get('weight', 162)
+        gender = request.data.get('gender', "male")
+        age = request.data.get('age', 22)
+        user_squat = request.data.get('user_squat', 335)
+        user_bench = request.data.get('user_bench', 285)
+        user_deadlift = request.data.get('user_deadlift', 435)
 
-# OUSTANDING TASKS:
-# --> Backend
-# --> Frontend
-# - set up front end and inputs
-# - logic for inputs and how they're categorized
-# --> Features/Upgrades
-# - Account stuff
-# - Unit tests using csv (update db again too)
+        squat_rank, bench_rank, deadlift_rank = calculate_rank(int(weight), gender, int(age), int(user_squat), int(user_bench), int(user_deadlift))
+        squat_rank = float(squat_rank)
+        bench_rank = float(bench_rank)
+        deadlift_rank = float(deadlift_rank)
 
-#searching website that does not use API
-# def get_html_content(equipment, weight_class, gender, age, category):
-#     USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36"
-#     LANGUAGE = "en-US,en;q=0.5"
-#     session = requests.Session()
-#     session.headers['User-Agent'] = USER_AGENT
-#     session.headers['Accept-Language'] = LANGUAGE
-#     session.headers['Content-Language'] = LANGUAGE
-#     html_content = session.get(f'https://www.openpowerlifting.org/rankings/{equipment}/{weight_class}/{gender}/{age}/{category}')
-#     return html_content
+        serializer = PowerliftingSerializer(data = {"weight": weight, "gender": gender, "age": age, "squat": user_squat, "bench": user_bench, "deadlift": user_deadlift, "squat_rank": squat_rank, "bench_rank": bench_rank, "deadlift_rank": deadlift_rank})
 
-#html_content = get_html_content(equipment, weight_class, gender, age, category)
+        if serializer.is_valid(): 
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-# #parser
-# soup = BeautifulSoup(html_content, "html.parser")
+        # print(squat_rank)
+        # return Response(serializer.data)
 
-# #sorting through parsed data
-# squats = [user_squat]
-# benches = [user_bench]
-# deadlifts = [user_deadlift]
+@api_view(['GET', 'PUT', 'DELETE'])
+def rankDetail(request, pk, format=None):
 
-# top_squats = soup.find_all("span", attrs={"class": "squat"})
-# top_benches = soup.find_all("span", attrs={"class": "bench"})
-# top_deadlifts = soup.find_all("span", attrs={"class": "deadlift"})
+    try:
+        rank = Powerlifting.objects.get(pk=pk)
+    except Powerlifting.DoesNotExist:
+        return HttpResponse(status=404)
 
-# SORTING PARSED DATA bs4 ALTERNATIVE
+    if request.method == 'GET':
+        serializer = PowerliftingSerializer(rank)
+        return JsonResponse(serializer.data)
 
-# all_squat = soup.find_all(class_="slick-cell l11 r11")
-# print(all_squat)
+    elif request.method == 'PUT':
+        data = JSONParser().parse(request)
+        serializer = PowerliftingSerializer(rank, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
 
-# all_squat = soup.find_all("span", class_="squat")
-# print(all_squat)
-
-# df = pd.DataFrame(list(zip(all_squat)), columns = lifts)
-# print(df.head())
-
-# BACKUP FULL
-# options = webdriver.ChromeOptions()
-# options.add_experimental_option('excludeSwitches', ['enable-logging'])
-# driver = webdriver.Chrome(options=options)
-# driver.maximize_window()
-# driver.get(f'https://www.openpowerlifting.org/rankings/\
-# {equipment}/{weight_class}/{gender}/{age}/{category}')
-# driver.implicitly_wait(15)
-
-# # retrieving lift data
-# # does not need to be run once all data stored in database
-
-# i = 0
-# squats = [user_squat]
-# benches = [user_bench]
-# deadlifts = [user_deadlift]
-
-# squat_data = driver.find_elements(By.CLASS_NAME, "squat")
-# bench_data = driver.find_elements(By.CLASS_NAME, "bench")
-# deadlift_data = driver.find_elements(By.CLASS_NAME, "deadlift")
-
-# for squat in squat_data:
-#     squats.append(float(squat.text))
-# for bench in bench_data:
-#     benches.append(float(bench.text))
-# for deadlift in deadlift_data:
-#     deadlifts.append(float(deadlift.text))
-# driver.execute_script("arguments[0].scrollIntoView(true);", squat_data[-1])
-# time.sleep(0.1)
-
-# while i <= 2:
-#     squat_data = driver.find_elements(By.CLASS_NAME, "squat")
-#     bench_data = driver.find_elements(By.CLASS_NAME, "bench")
-#     deadlift_data = driver.find_elements(By.CLASS_NAME, "deadlift")
-#     temp_squats = []
-#     temp_benches = []
-#     temp_deadlifts = []
-
-#     for squat in squat_data:
-#         temp_squats.append(float(squat.text))
-#     for bench in bench_data:
-#         temp_benches.append(float(bench.text))
-#     for deadlift in deadlift_data:
-#         temp_deadlifts.append(float(deadlift.text))
-
-#     driver.execute_script("arguments[0].scrollIntoView(true);", squat_data[-1])
-#     time.sleep(2)
-
-#     temp_squats[0:7] = []
-#     squats.extend(temp_squats)
-#     temp_benches[0:7] = []
-#     benches.extend(temp_benches)
-#     temp_deadlifts[0:7] = []
-#     deadlifts.extend(temp_deadlifts)
-
-#     i = i + 1
-
-# # #insert data into MongoDB
-# # #only needs to be run once to store in DB, do not run otherwise
-
-# client = MongoClient()
-# client = MongoClient("localhost", 27017)
-
-# db = client.PowerliftingDB
-
-# # squats_dict = {}
-# # squats_dict["squats"] = squats
-# # # print(squats_dict)
-# # benches_dict = {}
-# # benches_dict["benches"] = benches
-# # # print(benches_dict)
-# # deadlifts_dict = {}
-# # deadlifts_dict["deadlifts"] = deadlifts
-# # # print(deadlifts_dict)
-
-# # db.LiftData.insert_one(squats_dict)
-# # db.LiftData.insert_one(benches_dict)
-# # db.LiftData.insert_one(deadlifts_dict)
-
-# #Calculate rank of user
-
-# squat_df = pd.DataFrame(squats)
-# bench_df = pd.DataFrame(benches)
-# deadlift_df = pd.DataFrame(deadlifts)
-
-# squat_rank = squat_df.lt(user_squat).sum()/len(squat_df)*100
-# bench_rank = bench_df.lt(user_bench).sum()/len(bench_df)*100
-# deadlift_rank = deadlift_df.lt(user_deadlift).sum()/len(deadlift_df)*100
-
-# print(squat_rank.to_string(index=False) + "%")
-# print(bench_rank.to_string(index=False) + "%")
-# print(deadlift_rank.to_string(index=False) + "%")
-
-# html_content = driver.page_source
-# driver.close()
+    elif request.method == 'DELETE':
+        rank.delete()
+        return HttpResponse(status=204)
