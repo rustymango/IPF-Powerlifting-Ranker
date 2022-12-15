@@ -1,9 +1,10 @@
 import axios from 'axios';
-import React, { Component, useState, useEffect }  from 'react';
+import React, { Component, useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 function PostRank () {
 
+    var postFromResponse = null;
     const [ranks, setRank] = useState({});
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -18,18 +19,24 @@ function PostRank () {
         .then((data) => {
             setRank(data)
             console.log(ranks)
+
         })
         .catch((error) => {
             setError(error.message);
         })
         .finally(() => {
             setLoading(false);
-        });
+        })
     }
 
     useEffect(() => {
         fetchRank();
     }, [])
+
+
+    // function handleClick(event) {
+    //     setRank(event.target.value);
+    // };
 
     const table = {
         margin: '0 auto',
@@ -61,23 +68,48 @@ function PostRank () {
                     <tbody>
                     {
                         ranks.map(rank =>
+                            // <div>
                             <tr key = {rank.id}>
-                                <td style={td}>You're in the top {rank.squat_rank}</td>
-                                <td style={td}>You're in the top {rank.bench_rank}</td>
-                                <td style={td}>You're in the top {rank.deadlift_rank}</td>  
+                                <td style={td}>You beat {rank.squat_rank} of squatters in your class</td>
+                                <td style={td}>You beat {rank.bench_rank} of benchers in your class</td>
+                                <td style={td}>You beat {rank.deadlift_rank} of deadlifters in your class</td>  
                             </tr>
+                            ,{/* <button key = {rank.id}
+                                onClick = {() => deleteRank(rank.id)}
+                                > Get Rank!
+                            </button>
+                            </div> */}
                         )
                     }
                     </tbody>
                 </table>
+                {/* <button
+                    onClick = {() => DeleteRank()}
+                    > Get Rank!
+                </button> */}
             </div>
         )
     }
     else {
         return(
-            <h3>No ranks posted yet</h3>
+            <div>
+                <h3>No ranks posted yet</h3>
+                {/* <button
+                onClick = {() => fetchRank()}
+                > Get Rank!
+                </button> */}
+                {/* {ranks.map(rank =>
+                    <div>
+                        <button key = {rank.id}
+                            onClick = {() => deleteRank(rank.id)}
+                            > Get Rank!
+                        </button>
+                    </div>
+                )
+                } */}
+            </div>
         )
-    }                
+    }
 
 };
 

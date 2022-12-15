@@ -10,12 +10,10 @@ class PostStats extends Component {
             weight: "",
             gender: "",
             age: "",
-            squat: "",
-            bench: "",
-            deadlift: "",
-            squat_rank: "",
-            bench_rank: "",
-            deadlift_rank: ""
+            user_squat: "",
+            user_bench: "",
+            user_deadlift: "",
+            ranks: []
         }
         // this.handleSubmit=this.handleSubmit.bind(this)
     }
@@ -35,57 +33,71 @@ class PostStats extends Component {
             age: event.target.value
         })
     }
-   squathandler = (event) => {
+    user_squathandler = (event) => {
         this.setState({
-            squat: event.target.value
+            user_squat: event.target.value
         })
     }
-    benchhandler = (event) => {
+    user_benchhandler = (event) => {
         this.setState({
-            bench: event.target.value
+            user_bench: event.target.value
         })
     }
-    deadlifthandler = (event) => {
+    user_deadlifthandler = (event) => {
         this.setState({
-            deadlift: event.target.value
-        })
-    }
-    squat_rankhandler = (event) => {
-        this.setState({
-            squat: event.target.value
-        })
-    }
-    bench_rankhandler = (event) => {
-        this.setState({
-            bench: event.target.value
-        })
-    }
-    deadlift_rankhandler = (event) => {
-        this.setState({
-            deadlift: event.target.value
+            user_deadlift: event.target.value
         })
     }
 
-
-    handleSubmit = (event) => {
-        // pop up dialogue box with text
-        // alert(`${this.state.weight} test text`)
-        event.preventDefault()
+    componentDidMount() {
         axios
+        
+            .get("http://localhost:8000/stats/")
+            .then(res => {
+                this.setState({ ranks: res.data });
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    }
+
+    handleSubmit = async (event) => {
+        event.preventDefault()
+
+        if (this.state.ranks.length > 0) {
+            this.state.ranks.forEach(async rank => {
+
+            await axios.delete(`http://localhost:8000/stats/${rank.id}`)
+            await axios.post("http://localhost:8000/stats/", this.state)
+                .then(response => {
+                    console.log(response)
+                    window.location.reload()
+                })
+                .catch(error =>{
+                    console.log(error.response)
+                })
+            });
+        }
+
+        else {
+        axios
+
             .post("http://localhost:8000/stats/", this.state)
-             .then(response => {
+            .then(response => {
                 console.log(response)
-             })
-             .catch(error =>{
+                window.location.reload()
+            })
+            .catch(error =>{
                 console.log(error.response)
-             })
+            })
+
         console.log(this.state);
         this.setState({
             weight: "",
             gender: "",
             age: "",
         })
-
+        }
 
     }
 
@@ -94,7 +106,6 @@ class PostStats extends Component {
 
         return (
             <div>
-
                 <form onSubmit={this.handleSubmit }>
                     <h1>Lifting Class Registration</h1>
                     <label>weight :</label> <input type="text" value={this.state.weight} onChange={this.weighthandler} placeholder="Weight..." /><br />
@@ -104,10 +115,10 @@ class PostStats extends Component {
                         <option value="female">Female</option>
                     </select><br />
                     <label>age :</label> <input type="text" value={this.state.age} onChange={this.agehandler} placeholder="Age..." /><br />
-                    <label>Squat :</label> <input type="text" value={this.state.squat} onChange={this.squathandler} placeholder="Squat..." /><br />
-                    <label>Bench :</label> <input type="text" value={this.state.bench} onChange={this.benchhandler} placeholder="Bench..." /><br />
-                    <label>Deadlift :</label> <input type="text" value={this.state.deadlift} onChange={this.deadlifthandler} placeholder="Deadlift..." /><br />
-                    <button type="submit">Submit</button>
+                    <label>Squat :</label> <input type="text" value={this.state.user_squat} onChange={this.user_squathandler} placeholder="Squat..." /><br />
+                    <label>Bench :</label> <input type="text" value={this.state.user_bench} onChange={this.user_benchhandler} placeholder="Bench..." /><br />
+                    <label>Deadlift :</label> <input type="text" value={this.state.user_deadlift} onChange={this.user_deadlifthandler} placeholder="Deadlift..." /><br />
+                    <button onClick={this.handleSubmit}>Submit</button>
                 </form>
             </div>
         )
