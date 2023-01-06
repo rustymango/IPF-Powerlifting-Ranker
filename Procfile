@@ -1,0 +1,1 @@
+web: gunicorn powerlifting_app.wsgi --log-file -
