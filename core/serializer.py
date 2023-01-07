@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from .models import Powerlifting
-from pymongo import MongoClient
-import pandas as pd
 
 class PowerliftingSerializer(serializers.ModelSerializer):
 
