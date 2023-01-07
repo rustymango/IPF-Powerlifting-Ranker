@@ -18,10 +18,10 @@ from .serializer import PowerliftingSerializer
 from cgitb import html
 from numpy import double
 from collections import defaultdict
-from bson import ObjectId
-import pip._vendor.requests
-import requests
-import re
+# from bson import ObjectId
+# import pip._vendor.requests
+# import requests
+# import re
 import numpy as np
 
 #pandas
@@ -37,6 +37,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 import time
+
 #NoSQL db (mongoDB)
 from pymongo import MongoClient
 
