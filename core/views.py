@@ -54,8 +54,11 @@ from pymongo import MongoClient
 
 def query_lift_db(weight_class, database_id):
     
-    client = MongoClient()
-    client = MongoClient("localhost", 27017)
+    # client = MongoClient()
+    # client = MongoClient("localhost", 27017)
+
+    # client = MongoClient()
+    client = MongoClient("mongodb+srv://vinnywong:facetrol1@powerliftingdb.b69pk1q.mongodb.net/?retryWrites=true&w=majority")
 
     db = client.PowerliftingDB    
     
@@ -68,7 +71,7 @@ def query_lift_db(weight_class, database_id):
 
     for lift in squat_cursor:
         squats = lift["squats"]
-        # print(squats)
+        # print(len(squats))
     for lift in bench_cursor:
         benches = lift["benches"]
         # print(benches)
